@@ -1,3 +1,5 @@
+#![windows_subsystem = "windows"]
+
 mod clipboard;
 mod keyboard;
 mod logger;
