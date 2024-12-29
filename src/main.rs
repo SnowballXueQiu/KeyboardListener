@@ -5,6 +5,7 @@ mod keyboard;
 mod logger;
 
 use std::thread;
+use std::time::Duration;
 
 fn main() {
     let clipboard_thread = thread::spawn(|| {
@@ -15,6 +16,7 @@ fn main() {
         keyboard::monitor_keyboard();
     });
 
-    clipboard_thread.join().unwrap();
-    keyboard_thread.join().unwrap();
+    loop {
+        thread::sleep(Duration::from_secs(1));
+    }
 }
