@@ -1,6 +1,6 @@
 use clipboard::ClipboardContext;
 use clipboard::ClipboardProvider;
-use unicode_segmentation::UnicodeSegmentation;
+//use unicode_segmentation::UnicodeSegmentation;
 use std::{thread, time};
 use crate::logger; // 导入 logger 模块
 

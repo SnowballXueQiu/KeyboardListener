@@ -5,11 +5,12 @@ mod keyboard;
 mod logger;
 
 use std::thread;
-use std::time::Duration;
 
 pub fn main() {
-    keyboard::monitor_keyboard();
-    thread::spawn(|| {
-        clipboard::monitor_clipboard();
-    }).join().expect("failed to spawn thread");
+    let mut threads=Vec::new();
+    threads.push(thread::spawn(|| keyboard::monitor_keyboard()));
+    threads.push(thread::spawn(|| clipboard::monitor_clipboard()));
+    for i in threads {
+        i.join().expect("failed to spawn thread");
+    }
 }
