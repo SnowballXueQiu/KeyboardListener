@@ -3,6 +3,7 @@
 mod clipboard;
 mod keyboard;
 mod logger;
+mod key_mapping;
 
 use std::thread;
 
