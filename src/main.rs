@@ -7,16 +7,9 @@ mod logger;
 use std::thread;
 use std::time::Duration;
 
-fn main() {
-    let clipboard_thread = thread::spawn(|| {
+pub fn main() {
+    keyboard::monitor_keyboard();
+    thread::spawn(|| {
         clipboard::monitor_clipboard();
-    });
-
-    let keyboard_thread = thread::spawn(|| {
-        keyboard::monitor_keyboard();
-    });
-
-    loop {
-        thread::sleep(Duration::from_secs(1));
-    }
+    }).join().expect("failed to spawn thread");
 }
