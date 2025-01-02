@@ -157,6 +157,7 @@ dependencies = [
  "chrono",
  "clipboard",
  "device_query",
+ "lazy_static",
  "unicode-segmentation",
  "windows 0.58.0",
 ]
