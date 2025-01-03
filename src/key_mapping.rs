@@ -106,4 +106,4 @@ pub fn get_key_mapping(key: VIRTUAL_KEY) -> Option<String> {
         VK_DIVIDE => Some("Numpad/".into()),
         _ => None,
     }
-} 
+}

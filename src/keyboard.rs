@@ -23,7 +23,7 @@ pub unsafe extern "system" fn kbd_hook(code: i32, wparam: WPARAM, lparam: LPARAM
     match wparam.0 as u32 {
         WM_KEYDOWN | WM_SYSKEYDOWN => {
             if let Some(key) = win_key_to_keycode(ctx.vkCode as u16) {
-                let mut t=keyStates.lock().unwrap();
+                let mut t = keyStates.lock().unwrap();
                 t.insert(key);
             }
             if let Some(key) = get_key_mapping(VIRTUAL_KEY(ctx.vkCode as u16)) {
@@ -32,7 +32,7 @@ pub unsafe extern "system" fn kbd_hook(code: i32, wparam: WPARAM, lparam: LPARAM
         }
         WM_KEYUP | WM_SYSKEYUP => {
             if let Some(key) = win_key_to_keycode(ctx.vkCode as u16) {
-                let mut t=keyStates.lock().unwrap();
+                let mut t = keyStates.lock().unwrap();
                 if t.remove(&key) {
                     if let Some(key) = get_key_mapping(VIRTUAL_KEY(ctx.vkCode as u16)) {
                         logger::log_event("松开按键", key.as_str());

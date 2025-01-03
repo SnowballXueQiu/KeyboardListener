@@ -11,8 +11,22 @@ use windows::core::{PCSTR, PCWSTR};
 use windows::Win32::Foundation::BOOL;
 use windows::Win32::System::Threading::{CreateMutexA, OpenMutexW, SYNCHRONIZATION_SYNCHRONIZE};
 
+const SINGLE_INSTANCE_MUTEX: &str = "Global\\37890ce2-1027-4623-a280-16ec6ff74239\0";
+
 pub fn main() {
-    if let Ok(handle) = unsafe{OpenMutexW(SYNCHRONIZATION_SYNCHRONIZE,BOOL(0),PCWSTR::from_raw(b"Global\\37890ce2-1027-4623-a280-16ec6ff74239\0".map(|i| i as u16).as_ptr()))} {
+    if let Ok(handle) = unsafe {
+        OpenMutexW(
+            SYNCHRONIZATION_SYNCHRONIZE,
+            BOOL(0),
+            PCWSTR::from_raw(
+                SINGLE_INSTANCE_MUTEX
+                    .encode_utf16()
+                    .chain([0])
+                    .collect::<Vec<u16>>()
+                    .as_ptr(),
+            ),
+        )
+    } {
         if !handle.is_invalid() {
             return;
         }
@@ -21,7 +35,10 @@ pub fn main() {
         CreateMutexA(
             None,
             BOOL(1),
-            PCSTR::from_raw(b"Global\\37890ce2-1027-4623-a280-16ec6ff74239\0".as_ptr())
+            PCSTR::from_raw(
+                SINGLE_INSTANCE_MUTEX
+                    .as_ptr()
+            ),
         )
     } {
         if handle.is_invalid() {

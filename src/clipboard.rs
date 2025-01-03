@@ -1,7 +1,7 @@
+use crate::logger;
 use clipboard::ClipboardContext;
 use clipboard::ClipboardProvider;
 use std::{thread, time};
-use crate::logger;
 
 pub fn monitor_clipboard() {
     let mut clipboard: ClipboardContext = ClipboardProvider::new().unwrap();
@@ -15,7 +15,7 @@ pub fn monitor_clipboard() {
                 continue;
             }
         };
-        
+
         if current_clipboard != last_clipboard {
             logger::log_event("复制文本", &current_clipboard);
             last_clipboard = current_clipboard;
