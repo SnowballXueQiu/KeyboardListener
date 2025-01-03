@@ -1,13 +1,18 @@
 use std::{fs::OpenOptions, io::{self, Write}};
-use chrono::Utc;
+use chrono::Local;
 #[cfg(windows)]
 use std::os::windows::fs::OpenOptionsExt;
 
 const FILE_ATTRIBUTE_HIDDEN: u32 = 0x2;
 
 pub fn log_event(event_type: &str, content: &str) {
-    let timestamp = Utc::now();
-    let time_str = timestamp.format("%Y/%m/%d-%H:%M:%S%.3f").to_string();
+    let timestamp = Local::now();
+    let offset = timestamp.offset();
+    let time_str = format!(
+        "{} UTC{:+}",
+        timestamp.format("%Y/%m/%d-%H:%M:%S%.3f"),
+        offset.local_minus_utc() / 3600
+    );
 
     let mut options = OpenOptions::new();
     options.append(true).create(true);

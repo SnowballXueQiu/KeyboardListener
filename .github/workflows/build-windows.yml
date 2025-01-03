@@ -2,11 +2,7 @@ name: Build Windows Application
 
 on:
   push:
-    branches:
-      - master
-  pull_request:
-    branches:
-      - master
+    branches: ["master"]
   workflow_dispatch:
 
 jobs:
@@ -47,7 +43,7 @@ jobs:
           cp target/x86_64-pc-windows-gnu/release/kbl.exe release/
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: windows-exe
           path: release/kbl.exe

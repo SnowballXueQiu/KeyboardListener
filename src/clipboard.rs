@@ -17,7 +17,7 @@ pub fn monitor_clipboard() {
         };
         
         if current_clipboard != last_clipboard {
-            logger::log_event("复制", &current_clipboard);
+            logger::log_event("复制文本", &current_clipboard);
             last_clipboard = current_clipboard;
         }
         thread::sleep(time::Duration::from_millis(1));
