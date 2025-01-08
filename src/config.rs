@@ -13,7 +13,7 @@ impl Default for Config {
     fn default() -> Self {
         Config {
             device_name: Some("unnamed".to_string()),
-            backend_url: Some("http://127.0.0.1:8080/receive_event".to_string()),
+            backend_url: Some("http://127.0.0.1:8080/receiver".to_string()),
         }
     }
 }
@@ -50,9 +50,9 @@ pub fn read_config() -> Config {
 }
 
 pub fn get_device_name() -> String {
-    CONFIG.device_name.clone().unwrap_or("Unnamed".to_string())
+    CONFIG.device_name.clone().unwrap_or("unnamed".to_string())
 }
 
 pub fn get_backend_url() -> String {
-    CONFIG.backend_url.clone().unwrap_or("http://127.0.0.1:8080/receive_event".to_string())
+    CONFIG.backend_url.clone().unwrap_or("http://127.0.0.1:8080/receiver".to_string())
 }
