@@ -9,7 +9,7 @@ mod getter;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let app = Router::new().route("/receive_event", post(event_handler));
+    let app = Router::new().route("/receiver", post(event_handler));
 
     let addr = SocketAddr::from(([127, 0, 0, 1], 8080));
 
