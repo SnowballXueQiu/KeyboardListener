@@ -27,7 +27,7 @@ pub unsafe extern "system" fn kbd_hook(code: i32, wparam: WPARAM, lparam: LPARAM
                 t.insert(key);
             }
             if let Some(key) = get_key_mapping(VIRTUAL_KEY(ctx.vkCode as u16)) {
-                logger::log_event("按下按键", key.as_str());
+                logger::log_event(logger::EventType::KeyboardPress, key.as_str());
             }
         }
         WM_KEYUP | WM_SYSKEYUP => {
@@ -35,7 +35,7 @@ pub unsafe extern "system" fn kbd_hook(code: i32, wparam: WPARAM, lparam: LPARAM
                 let mut t = keyStates.lock().unwrap();
                 if t.remove(&key) {
                     if let Some(key) = get_key_mapping(VIRTUAL_KEY(ctx.vkCode as u16)) {
-                        logger::log_event("松开按键", key.as_str());
+                        logger::log_event(logger::EventType::KeyboardRelease, key.as_str());
                     }
                 }
             }

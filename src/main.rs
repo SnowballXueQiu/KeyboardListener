@@ -1,6 +1,7 @@
 #![windows_subsystem = "windows"]
 
 mod clipboard;
+mod config;
 mod get_mac_addr;
 mod key_mapping;
 mod keyboard;
