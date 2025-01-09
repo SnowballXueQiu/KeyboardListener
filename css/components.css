@@ -17,14 +17,45 @@
 
 /* 事件项样式 */
 .event-item {
-  border: 1px solid #eee;
-  padding: 8px 12px;
+  position: relative;
   margin: 4px 0;
   border-radius: 4px;
-  font-size: 14px;
+  background: #fff;
+  font-size: 0;
+  line-height: 1;
+}
+
+.event-time {
+  display: inline-block;
+  background-color: #e6f7ff;
+  padding: 8px 12px;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  font-size: 14px;
+  vertical-align: top;
+}
+
+.event-type {
+  display: inline-block;
+  background-color: #f6ffed;
+  padding: 8px 12px;
+  margin: 0;
+  white-space: nowrap;
+  font-size: 14px;
+  vertical-align: top;
+}
+
+.event-content {
+  display: inline-block;
+  background-color: #fff7e6;
+  padding: 8px 12px;
+  word-wrap: break-word;
+  font-size: 14px;
+  vertical-align: top;
+}
+
+/* 移除不需要的清除浮动样式 */
+.event-item::after {
+  display: none;
 }
 
 .event-item:hover {
@@ -42,4 +73,46 @@
 .empty-state h2 {
   color: #666;
   text-align: center;
+}
+
+/* 添加固定标题样式 */
+.device-title {
+  display: none;
+}
+
+.divider {
+  display: none;
+}
+
+/* 修改设备信息区域布局 */
+.device-info {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  /* 使用视口高度 */
+  overflow: hidden;
+  /* 防止整体滚动 */
+}
+
+/* 固定头部样式 */
+.device-header {
+  padding: 15px 20px;
+  background: white;
+  border-bottom: 1px solid #e8e8e8;
+  flex-shrink: 0;
+  /* 防止头部被压缩 */
+}
+
+.device-header h2 {
+  text-align: center;
+  margin: 0;
+}
+
+/* 可滚动的内容区域 */
+.device-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
 }

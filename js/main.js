@@ -19,7 +19,7 @@ async function renderDeviceList() {
   const deviceInfoElement = document.getElementById('deviceInfo');
   deviceInfoElement.innerHTML = `
     <div class="empty-state">
-      <h2>请选择设备查看详细信息</h2>
+      <h2>← 请选择设备查看详细信息</h2>
     </div>
   `;
 }
@@ -32,30 +32,60 @@ async function showDeviceInfo(deviceId, deviceName, e) {
   });
   e.target.classList.add('active');
 
+  // 选择设备后自动收起导航栏
+  const navbar = document.getElementById('navbar');
+  navbar.classList.add('collapsed');
+
   const deviceInfoElement = document.getElementById('deviceInfo');
   const events = await getDeviceLogs(deviceId);
 
-  let html = `<h2>${deviceName} - ${deviceId} 的事件信息</h2>`;
+  // 事件类型映射表
+  const eventTypeMap = {
+    'keyboard_press': '按下',
+    'keyboard_release': '松开',
+    'clipboard_copy': '复制'
+  };
+
+  let html = `
+    <div class="device-header">
+      <h2>${deviceName} - ${deviceId}</h2>
+      <div class="divider"></div>
+    </div>
+    <div class="device-content">
+  `;
 
   if (events.length === 0) {
     html += '<p>暂无事件记录</p>';
   } else {
     events.forEach(event => {
       const date = new Date(event.time * 1000);
+      const eventTypeCN = eventTypeMap[event.event_type] || event.event_type;
       html += `
-                <div class="event-item">
-                    <p><strong>时间：</strong>${date.toLocaleString()} (${event.timezone})</p>
-                    <p><strong>事件类型：</strong>${event.event_type}</p>
-                    <p><strong>内容：</strong>${event.content}</p>
-                </div>
-            `;
+        <div class="event-item">
+          <span class="event-time">${date.toLocaleString()} (${event.timezone})</span>
+          <span class="event-type">${eventTypeCN}</span>
+          <span class="event-content">${event.content}</span>
+        </div>
+      `;
     });
   }
 
+  html += '</div>';  // 关闭 device-content div
+
   deviceInfoElement.innerHTML = html;
+}
+
+function initializeNavbar() {
+  const navbar = document.getElementById('navbar');
+  const toggleBtn = document.getElementById('toggleBtn');
+
+  toggleBtn.addEventListener('click', () => {
+    navbar.classList.toggle('collapsed');
+  });
 }
 
 // 初始化页面
 window.onload = function () {
   renderDeviceList();
+  initializeNavbar();
 }; 
