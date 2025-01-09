@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>设备监控系统</title>
+  <style>
+    .container {
+      display: flex;
+      width: 100%;
+      min-height: 100vh;
+    }
+
+    .device-list {
+      width: 300px;
+      border-right: 1px solid #ddd;
+      padding: 20px;
+    }
+
+    .device-info {
+      flex: 1;
+      padding: 20px;
+    }
+
+    .device-item {
+      padding: 10px;
+      margin: 5px 0;
+      cursor: pointer;
+      border: 1px solid #eee;
+      border-radius: 4px;
+    }
+
+    .device-item:hover {
+      background-color: #f5f5f5;
+    }
+
+    .device-item.active {
+      background-color: #e6f7ff;
+      border-color: #1890ff;
+    }
+
+    .event-item {
+      border: 1px solid #eee;
+      padding: 15px;
+      margin: 10px 0;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="device-list" id="deviceList"></div>
+    <div class="device-info" id="deviceInfo"></div>
+  </div>
+
+  <script type="module" src="./config.js"></script>
+  <script type="module" src="./get_data.js"></script>
+  <script type="module" src="./main.js"></script>
+</body>
+
+</html>
