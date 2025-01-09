@@ -1,0 +1,45 @@
+.device-item {
+  padding: 10px;
+  margin: 5px 0;
+  cursor: pointer;
+  border: 1px solid #eee;
+  border-radius: 4px;
+}
+
+.device-item:hover {
+  background-color: #f5f5f5;
+}
+
+.device-item.active {
+  background-color: #e6f7ff;
+  border-color: #1890ff;
+}
+
+/* 事件项样式 */
+.event-item {
+  border: 1px solid #eee;
+  padding: 8px 12px;
+  margin: 4px 0;
+  border-radius: 4px;
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.event-item:hover {
+  background-color: #f5f5f5;
+}
+
+.empty-state {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  min-height: 200px;
+}
+
+.empty-state h2 {
+  color: #666;
+  text-align: center;
+}

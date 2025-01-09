@@ -14,6 +14,14 @@ async function renderDeviceList() {
     deviceElement.onclick = (e) => showDeviceInfo(device.device_id, device.device_name, e);
     deviceListElement.appendChild(deviceElement);
   });
+
+  // 添加初始提示信息
+  const deviceInfoElement = document.getElementById('deviceInfo');
+  deviceInfoElement.innerHTML = `
+    <div class="empty-state">
+      <h2>请选择设备查看详细信息</h2>
+    </div>
+  `;
 }
 
 // 显示设备信息
