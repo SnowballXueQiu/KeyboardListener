@@ -18,7 +18,7 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           script: |
             cd kbl/sources
-            git clone -b backend --single-branch https://github.com/SnowballXueQiu/KeyboardListener
+            git pull
       - name: Run Docker Compose
         uses: appleboy/ssh-action@v1.0.1
         with:
