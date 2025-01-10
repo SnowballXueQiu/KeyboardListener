@@ -1,0 +1,30 @@
+name: CI/CD for Backend
+
+on:
+  push:
+    branches: "backend"
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone repository
+        uses: appleboy/ssh-action@v1.0.1
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            cd kbl/sources
+            git clone -b backend --single-branch https://github.com/SnowballXueQiu/KeyboardListener
+      - name: Run Docker Compose
+        uses: appleboy/ssh-action@v1.0.1
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            cd kbl
+            sudo docker compose up -d

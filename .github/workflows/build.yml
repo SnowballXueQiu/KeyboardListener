@@ -1,25 +1,22 @@
-name: Build Windows Application
+name: CI
 
 on:
   push:
-    branches: ["main"]
+    branches: "main"
   workflow_dispatch:
 
 jobs:
   build-windows:
     runs-on: windows-latest
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
-
       - name: Set up Rust
         uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
           target: x86_64-pc-windows-gnu
           default: true
-
       - name: Cache Cargo
         uses: actions/cache@v3
         with:
@@ -30,18 +27,14 @@ jobs:
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: |
             ${{ runner.os }}-cargo-
-
       - name: Install target
         run: rustup target add x86_64-pc-windows-gnu
-
       - name: Build
         run: cargo build --release --target x86_64-pc-windows-gnu
-        
       - name: Prepare artifact
         run: |
           mkdir -p release
           cp target/x86_64-pc-windows-gnu/release/kbl.exe release/
-
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
