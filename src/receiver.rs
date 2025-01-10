@@ -1,6 +1,6 @@
+use crate::db;
 use axum::Json;
 use serde::{Deserialize, Serialize};
-use crate::db;
 
 #[derive(Serialize, Deserialize)]
 pub struct EventData {
@@ -24,6 +24,9 @@ pub async fn event_handler(Json(event): Json<EventData>) -> String {
     println!("----------------------------");
 
     db::store_event(&event.device_id, &event).expect("Failed to store event");
+
+    db::store_device(&event.device_id, &event.device_name)
+        .expect("Failed to store or update device");
 
     "Event received successfully".to_string()
 }
