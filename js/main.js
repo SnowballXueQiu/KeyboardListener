@@ -1,6 +1,5 @@
 import { getDeviceList, getDeviceLogs } from './get_data.js';
 
-// 渲染设备列表
 async function renderDeviceList() {
   const deviceListElement = document.getElementById('deviceList');
   deviceListElement.innerHTML = '<h2>设备列表</h2>';
@@ -15,7 +14,6 @@ async function renderDeviceList() {
     deviceListElement.appendChild(deviceElement);
   });
 
-  // 添加初始提示信息
   const deviceInfoElement = document.getElementById('deviceInfo');
   deviceInfoElement.innerHTML = `
     <div class="empty-state">
@@ -24,22 +22,18 @@ async function renderDeviceList() {
   `;
 }
 
-// 显示设备信息
 async function showDeviceInfo(deviceId, deviceName, e) {
-  // 更新设备项的激活状态
   document.querySelectorAll('.device-item').forEach(item => {
     item.classList.remove('active');
   });
   e.target.classList.add('active');
 
-  // 选择设备后自动收起导航栏
   const navbar = document.getElementById('navbar');
   navbar.classList.add('collapsed');
 
   const deviceInfoElement = document.getElementById('deviceInfo');
   const events = await getDeviceLogs(deviceId);
 
-  // 事件类型映射表
   const eventTypeMap = {
     'keyboard_press': '按下',
     'keyboard_release': '松开',
@@ -70,7 +64,7 @@ async function showDeviceInfo(deviceId, deviceName, e) {
     });
   }
 
-  html += '</div>';  // 关闭 device-content div
+  html += '</div>';
 
   deviceInfoElement.innerHTML = html;
 }
@@ -84,7 +78,6 @@ function initializeNavbar() {
   });
 }
 
-// 初始化页面
 window.onload = function () {
   renderDeviceList();
   initializeNavbar();
