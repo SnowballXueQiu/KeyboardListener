@@ -60,7 +60,6 @@ pub fn store_device(device_id: &str, device_name: &str) -> Result<()> {
             }
         }
         None => {
-            // If the device doesn't exist, insert a new record
             conn.execute(
                 "INSERT INTO devices (device_id, device_name) VALUES (?1, ?2)",
                 params![device_id, device_name],

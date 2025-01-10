@@ -16,7 +16,6 @@ pub struct DeviceLog {
     timezone: String,
 }
 
-// GET /device_id_list 获取所有设备
 pub async fn get_device_list() -> Json<Vec<Device>> {
     match db::get_device_names() {
         Ok(devices) => Json(
@@ -32,7 +31,6 @@ pub async fn get_device_list() -> Json<Vec<Device>> {
     }
 }
 
-// GET /log/{device_id} 获取设备的日志
 pub async fn get_device_logs(Path(device_id): Path<String>) -> Json<Vec<DeviceLog>> {
     match db::get_device_logs(&device_id) {
         Ok(logs) => Json(
