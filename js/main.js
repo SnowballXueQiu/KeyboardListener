@@ -50,6 +50,15 @@ function connectWebSocket(deviceId) {
   currentWebSocket = ws;
 }
 
+function scrollToBottom() {
+  const deviceContent = document.querySelector('.device-content');
+  if (deviceContent) {
+    requestAnimationFrame(() => {
+      deviceContent.scrollTop = deviceContent.scrollHeight;
+    });
+  }
+}
+
 function appendNewLog(newLog) {
   const deviceContent = document.querySelector('.device-content');
   if (!deviceContent) return;
@@ -72,7 +81,7 @@ function appendNewLog(newLog) {
   `;
 
   deviceContent.appendChild(eventElement);
-  deviceContent.scrollTop = deviceContent.scrollHeight;
+  scrollToBottom();
 }
 
 async function renderDeviceList() {
@@ -144,6 +153,8 @@ async function showDeviceInfo(deviceId, deviceName, e) {
   html += '</div>';
 
   deviceInfoElement.innerHTML = html;
+
+  scrollToBottom();
 
   connectWebSocket(deviceId);
 }
