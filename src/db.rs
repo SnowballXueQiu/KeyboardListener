@@ -5,7 +5,6 @@ use std::fs;
 
 const DATA_DIR: &str = "./data";
 
-/// 获取数据库连接
 fn get_connection(path: &str) -> Result<Connection> {
     Connection::open(path).map_err(|e| {
         println!("Failed to open database {}: {}", path, e);
@@ -13,12 +12,10 @@ fn get_connection(path: &str) -> Result<Connection> {
     })
 }
 
-/// 确保目录存在
 fn ensure_data_dir() -> Result<()> {
     fs::create_dir_all(DATA_DIR).map_err(|e| rusqlite::Error::ToSqlConversionFailure(Box::new(e)))
 }
 
-/// 存储事件
 pub async fn store_event(
     device_id: &str,
     event: &EventData,
@@ -63,7 +60,6 @@ pub async fn store_event(
     Ok(())
 }
 
-/// 存储设备信息
 pub fn store_device(device_id: &str, device_name: &str) -> Result<()> {
     ensure_data_dir()?;
     let db_path = format!("{}/device.db", DATA_DIR);
@@ -102,13 +98,14 @@ pub fn store_device(device_id: &str, device_name: &str) -> Result<()> {
     Ok(())
 }
 
-/// 获取设备列表
 pub fn get_device_names() -> Result<Vec<(String, String)>> {
     ensure_data_dir()?;
     let db_path = format!("{}/device.db", DATA_DIR);
     let conn = get_connection(&db_path)?;
 
-    let mut stmt = conn.prepare("SELECT device_id, device_name FROM devices")?;
+    let query = "SELECT device_id, device_name FROM devices";
+
+    let mut stmt = conn.prepare(&query)?;
     let device_iter = stmt.query_map([], |row| Ok((row.get(0)?, row.get(1)?)))?;
 
     let mut devices = Vec::new();
@@ -119,12 +116,19 @@ pub fn get_device_names() -> Result<Vec<(String, String)>> {
     Ok(devices)
 }
 
-/// 获取设备日志
-pub fn get_device_logs(device_id: &str) -> Result<Vec<(i64, String, String, String)>> {
+pub fn get_device_logs(
+    device_id: &str,
+    log_limit: usize,
+) -> Result<Vec<(i64, String, String, String)>> {
     let db_path = format!("{}/{}.db", DATA_DIR, device_id);
     let conn = get_connection(&db_path)?;
 
-    let mut stmt = conn.prepare("SELECT time, event_type, content, timezone FROM events")?;
+    let query = format!(
+        "SELECT time, event_type, content, timezone FROM events ORDER BY time DESC LIMIT {}",
+        log_limit
+    );
+
+    let mut stmt = conn.prepare(&query)?;
     let log_iter = stmt.query_map([], |row| {
         Ok((row.get(0)?, row.get(1)?, row.get(2)?, row.get(3)?))
     })?;

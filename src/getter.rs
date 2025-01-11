@@ -1,4 +1,5 @@
-use crate::db::{self};
+use crate::config::Config;
+use crate::db;
 use axum::{extract::Path, Json};
 use serde::Serialize;
 
@@ -32,7 +33,17 @@ pub async fn get_device_list() -> Json<Vec<Device>> {
 }
 
 pub async fn get_device_logs(Path(device_id): Path<String>) -> Json<Vec<DeviceLog>> {
-    match db::get_device_logs(&device_id) {
+    let config = Config::init_config_file("config.toml").unwrap_or_else(|err| {
+        println!(
+            "Failed to initialize or read config.toml: {}. Using default configuration.",
+            err
+        );
+        Config::default()
+    });
+
+    let log_limit = config.log_limit;
+
+    match db::get_device_logs(&device_id, log_limit) {
         Ok(logs) => Json(
             logs.into_iter()
                 .map(|(time, event_type, content, timezone)| DeviceLog {

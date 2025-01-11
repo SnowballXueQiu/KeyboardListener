@@ -21,22 +21,21 @@ mod websocket;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // 初始化配置文件，如果文件无效则写入默认配置
-    let config = Config::init_config_file("config.toml").unwrap_or_else(|err| {
-        println!(
-            "Failed to initialize or read config.toml: {}. Using default configuration.",
-            err
-        );
-        Config::default()
-    });
+    let config = Arc::new(
+        Config::init_config_file("config.toml").unwrap_or_else(|err| {
+            println!(
+                "Failed to initialize or read config.toml: {}. Using default configuration.",
+                err
+            );
+            Config::default()
+        }),
+    );
 
-    // 配置 CORS
     let cors = CorsLayer::new()
         .allow_origin(Any)
         .allow_methods(Any)
         .allow_headers(Any);
 
-    // 解析地址
     let addr = SocketAddr::from((
         config.runtime.url.parse::<std::net::IpAddr>()?,
         config.runtime.port,
@@ -47,13 +46,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         config.runtime.url, config.runtime.port
     );
 
-    // 启动 TCP 监听
     let listener = tokio::net::TcpListener::bind(addr).await?;
 
-    // 初始化设备订阅者
     let subscribers: DeviceSubscribers = Arc::new(RwLock::new(HashMap::new()));
 
-    // 配置路由
     let app = Router::new()
         .route("/receiver", post(event_handler))
         .route("/device_id_list", get(get_device_list))
@@ -62,7 +58,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .layer(cors)
         .with_state(subscribers);
 
-    // 启动服务器和优雅退出
     tokio::select! {
         result = serve(listener, app.into_make_service()) => {
             if let Err(e) = result {
