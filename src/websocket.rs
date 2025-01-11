@@ -14,7 +14,6 @@ pub async fn handle_ws_connection(
     device_id: String,
     subscribers: DeviceSubscribers,
 ) {
-    // 获取或创建设备的广播通道
     let tx = {
         let mut subscribers = subscribers.write().await;
         subscribers
@@ -32,11 +31,9 @@ pub async fn handle_ws_connection(
         }
     }
 
-    // 连接关闭时自动清理
     subscribers.write().await.remove(&device_id);
 }
 
-// 广播新的日志消息给所有订阅者
 pub async fn broadcast_log(
     device_id: &str,
     time: i64,
@@ -54,7 +51,6 @@ pub async fn broadcast_log(
         })
         .to_string();
 
-        // 忽略发送错误，因为可能没有活跃的订阅者
         let _ = tx.send(message);
     }
 }
