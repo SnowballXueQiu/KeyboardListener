@@ -1,8 +1,13 @@
 use crate::receiver::EventData;
+use crate::websocket::DeviceSubscribers;
 use rusqlite::{params, Connection, OptionalExtension, Result};
 use std::fs;
 
-pub fn store_event(device_id: &str, event: &EventData) -> Result<()> {
+pub async fn store_event(
+    device_id: &str,
+    event: &EventData,
+    subscribers: Option<&DeviceSubscribers>,
+) -> Result<()> {
     let db_path = format!("./data/{}.db", device_id);
     fs::create_dir_all("./data")
         .map_err(|e| rusqlite::Error::InvalidPath(std::path::PathBuf::from(e.to_string())))?;
@@ -27,6 +32,18 @@ pub fn store_event(device_id: &str, event: &EventData) -> Result<()> {
             event.content
         ],
     )?;
+
+    if let Some(subs) = subscribers {
+        crate::websocket::broadcast_log(
+            device_id,
+            event.timestamp,
+            &event.event_type,
+            &event.content,
+            &event.timezone,
+            subs,
+        )
+        .await;
+    }
 
     Ok(())
 }

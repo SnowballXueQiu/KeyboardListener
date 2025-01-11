@@ -4,10 +4,12 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-axum = "0.8.1"
+axum = { version = "0.8.1", features = ["ws"] }
 serde = { version = "1.0.217", features = ["derive"] }
-serde_json = "1.0.135"
-tokio = { version = "1.42.0", features = ["full"] }
+serde_json = "1.0"
+tokio = { version = "1", features = ["full"] }
 hyper = "1.5.2"
 rusqlite = { version = "0.32.1", features = ["bundled"] }
 tower-http = { version = "0.6.2", features = ["cors"] }
+warp = "0.3"
+futures = "0.3"

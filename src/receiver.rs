@@ -1,4 +1,6 @@
 use crate::db;
+use crate::websocket::DeviceSubscribers;
+use axum::extract::State;
 use axum::Json;
 use serde::{Deserialize, Serialize};
 
@@ -12,7 +14,10 @@ pub struct EventData {
     pub timezone: String,
 }
 
-pub async fn event_handler(Json(event): Json<EventData>) -> String {
+pub async fn event_handler(
+    State(subscribers): State<DeviceSubscribers>,
+    Json(event): Json<EventData>,
+) -> String {
     println!("Received Event:");
     println!("----------------------------");
     println!("Device ID   : {}", event.device_id);
@@ -23,7 +28,9 @@ pub async fn event_handler(Json(event): Json<EventData>) -> String {
     println!("Timezone    : {}", event.timezone);
     println!("----------------------------");
 
-    db::store_event(&event.device_id, &event).expect("Failed to store event");
+    db::store_event(&event.device_id, &event, Some(&subscribers))
+        .await
+        .expect("Failed to store event");
 
     db::store_device(&event.device_id, &event.device_name)
         .expect("Failed to store or update device");
