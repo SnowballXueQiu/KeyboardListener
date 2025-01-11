@@ -1,60 +1,11 @@
 import { getDeviceList, getDeviceLogs } from './get_data.js';
-import config from './config.js';
+import { closeWebSocket, connectWebSocket } from './ws.js';
 
-let currentWebSocket = null;
-let currentDeviceId = null;
-
-function closeWebSocket(newDeviceId = null) {
-  if (currentWebSocket && currentWebSocket.readyState === WebSocket.OPEN) {
-    try {
-      console.log(`正在关闭WebSocket连接: ${currentDeviceId} -> ${newDeviceId}`);
-      currentWebSocket.send(JSON.stringify({
-        type: 'close',
-        device_id: currentDeviceId,
-        new_device_id: newDeviceId
-      }));
-      currentWebSocket.close(1000, 'Device switched or page closed');
-    } catch (error) {
-      console.error('关闭WebSocket连接时出错:', error);
-    } finally {
-      currentWebSocket = null;
-      currentDeviceId = null;
-    }
-  }
-}
-
-function connectWebSocket(deviceId) {
-  const wsUrl = `${config.WS_BASE_URL}/ws/${deviceId}`;
-  const ws = new WebSocket(wsUrl);
-
-  currentWebSocket = ws;
-
-  ws.onopen = () => {
-    console.log(`WebSocket连接已建立: ${deviceId}`);
-    currentDeviceId = deviceId;
-  };
-
-  ws.onmessage = (event) => {
-    const newLog = JSON.parse(event.data);
-    appendNewLog(newLog);
-  };
-
-  ws.onclose = (event) => {
-    console.log(`WebSocket连接已关闭: ${deviceId}, code: ${event.code}, reason: ${event.reason}`);
-    if (currentDeviceId === deviceId) {
-      currentWebSocket = null;
-      currentDeviceId = null;
-    }
-  };
-
-  ws.onerror = (error) => {
-    console.error(`WebSocket错误 (${deviceId}):`, error);
-    if (currentDeviceId === deviceId) {
-      currentWebSocket = null;
-      currentDeviceId = null;
-    }
-  };
-}
+const eventTypeMap = {
+  'keyboard_press': '按下',
+  'keyboard_release': '松开',
+  'clipboard_copy': '复制',
+};
 
 function scrollToBottom() {
   const deviceContent = document.querySelector('.device-content');
@@ -68,12 +19,6 @@ function scrollToBottom() {
 function appendNewLog(newLog) {
   const deviceContent = document.querySelector('.device-content');
   if (!deviceContent) return;
-
-  const eventTypeMap = {
-    'keyboard_press': '按下',
-    'keyboard_release': '松开',
-    'clipboard_copy': '复制'
-  };
 
   const date = new Date(newLog.time * 1000);
   const eventTypeCN = eventTypeMap[newLog.event_type] || newLog.event_type;
@@ -126,12 +71,6 @@ async function showDeviceInfo(deviceId, deviceName, e) {
   const deviceInfoElement = document.getElementById('deviceInfo');
   const events = await getDeviceLogs(deviceId);
 
-  const eventTypeMap = {
-    'keyboard_press': '按下',
-    'keyboard_release': '松开',
-    'clipboard_copy': '复制'
-  };
-
   let html = `
     <div class="device-header">
       <h2>${deviceName} - ${deviceId}</h2>
@@ -162,7 +101,7 @@ async function showDeviceInfo(deviceId, deviceName, e) {
 
   scrollToBottom();
 
-  connectWebSocket(deviceId);
+  connectWebSocket(deviceId, appendNewLog);
 }
 
 function initializeNavbar() {
@@ -181,4 +120,4 @@ window.addEventListener('beforeunload', () => {
 window.onload = function () {
   renderDeviceList();
   initializeNavbar();
-}; 
+};
