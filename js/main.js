@@ -6,7 +6,6 @@ let currentDeviceId = null;
 
 function closeWebSocket(newDeviceId = null) {
   if (currentWebSocket && currentWebSocket.readyState === WebSocket.OPEN) {
-    // 发送关闭消息，包含当前设备ID和新设备ID
     currentWebSocket.send(JSON.stringify({
       type: 'close',
       device_id: currentDeviceId,
@@ -19,7 +18,6 @@ function closeWebSocket(newDeviceId = null) {
 }
 
 function connectWebSocket(deviceId) {
-  // 建立新的WebSocket连接
   const wsUrl = `${config.WS_BASE_URL}/ws/${deviceId}`;
   const ws = new WebSocket(wsUrl);
 
@@ -100,7 +98,6 @@ async function renderDeviceList() {
 }
 
 async function showDeviceInfo(deviceId, deviceName, e) {
-  // 先关闭现有的WebSocket连接，传入新的设备ID
   closeWebSocket(deviceId);
 
   document.querySelectorAll('.device-item').forEach(item => {
@@ -148,7 +145,6 @@ async function showDeviceInfo(deviceId, deviceName, e) {
 
   deviceInfoElement.innerHTML = html;
 
-  // 建立新的WebSocket连接
   connectWebSocket(deviceId);
 }
 
@@ -161,7 +157,6 @@ function initializeNavbar() {
   });
 }
 
-// 添加页面关闭时的处理
 window.addEventListener('beforeunload', () => {
   closeWebSocket();
 });
