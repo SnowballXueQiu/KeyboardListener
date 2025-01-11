@@ -18,6 +18,9 @@ reqwest = { version = "0.12.12", features = ["json", "blocking"] }
 serde_json = "1.0.135"
 tokio = { version = "1.42.0", features = ["full"] }
 
+[build-dependencies]
+winres = "0.1.12"
+
 [[bin]]
 name = "kbl"
 subsystem = "windows"
