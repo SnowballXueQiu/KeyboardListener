@@ -19,6 +19,7 @@ jobs:
           script: |
             cd kbl/sources
             git pull
+
       - name: Run Docker Compose
         uses: appleboy/ssh-action@v1.0.1
         with:
