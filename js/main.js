@@ -1,4 +1,81 @@
 import { getDeviceList, getDeviceLogs } from './get_data.js';
+import config from './config.js';
+
+let currentWebSocket = null;
+let currentDeviceId = null;
+
+function closeWebSocket(newDeviceId = null) {
+  if (currentWebSocket && currentWebSocket.readyState === WebSocket.OPEN) {
+    // 发送关闭消息，包含当前设备ID和新设备ID
+    currentWebSocket.send(JSON.stringify({
+      type: 'close',
+      device_id: currentDeviceId,
+      new_device_id: newDeviceId
+    }));
+    currentWebSocket.close(1000, 'Device switched or page closed');
+    currentWebSocket = null;
+    currentDeviceId = null;
+  }
+}
+
+function connectWebSocket(deviceId) {
+  // 建立新的WebSocket连接
+  const wsUrl = `${config.WS_BASE_URL}/ws/${deviceId}`;
+  const ws = new WebSocket(wsUrl);
+
+  ws.onopen = () => {
+    console.log(`WebSocket连接已建立: ${deviceId}`);
+    currentDeviceId = deviceId;
+  };
+
+  ws.onmessage = (event) => {
+    const newLog = JSON.parse(event.data);
+    appendNewLog(newLog);
+  };
+
+  ws.onclose = () => {
+    console.log(`WebSocket连接已关闭: ${deviceId}`);
+    if (currentDeviceId === deviceId) {
+      currentWebSocket = null;
+      currentDeviceId = null;
+    }
+  };
+
+  ws.onerror = (error) => {
+    console.error('WebSocket错误:', error);
+    if (currentDeviceId === deviceId) {
+      currentWebSocket = null;
+      currentDeviceId = null;
+    }
+  };
+
+  currentWebSocket = ws;
+}
+
+function appendNewLog(newLog) {
+  const deviceContent = document.querySelector('.device-content');
+  if (!deviceContent) return;
+
+  const eventTypeMap = {
+    'keyboard_press': '按下',
+    'keyboard_release': '松开',
+    'clipboard_copy': '复制'
+  };
+
+  const date = new Date(newLog.time * 1000);
+  const eventTypeCN = eventTypeMap[newLog.event_type] || newLog.event_type;
+
+  const eventElement = document.createElement('div');
+  eventElement.className = 'event-item';
+  eventElement.innerHTML = `
+    <span class="event-time">${date.toLocaleString()} (${newLog.timezone})</span>
+    <span class="event-type">${eventTypeCN}</span>
+    <span class="event-content">${newLog.content}</span>
+  `;
+
+  deviceContent.appendChild(eventElement);
+  deviceContent.scrollTop = deviceContent.scrollHeight;
+}
 
 async function renderDeviceList() {
   const deviceListElement = document.getElementById('deviceList');
@@ -23,6 +100,9 @@ async function renderDeviceList() {
 }
 
 async function showDeviceInfo(deviceId, deviceName, e) {
+  // 先关闭现有的WebSocket连接，传入新的设备ID
+  closeWebSocket(deviceId);
+
   document.querySelectorAll('.device-item').forEach(item => {
     item.classList.remove('active');
   });
@@ -67,6 +147,9 @@ async function showDeviceInfo(deviceId, deviceName, e) {
   html += '</div>';
 
   deviceInfoElement.innerHTML = html;
+
+  // 建立新的WebSocket连接
+  connectWebSocket(deviceId);
 }
 
 function initializeNavbar() {
@@ -77,6 +160,11 @@ function initializeNavbar() {
     navbar.classList.toggle('collapsed');
   });
 }
+
+// 添加页面关闭时的处理
+window.addEventListener('beforeunload', () => {
+  closeWebSocket();
+});
 
 window.onload = function () {
   renderDeviceList();
