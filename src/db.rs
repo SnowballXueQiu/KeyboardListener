@@ -3,15 +3,30 @@ use crate::websocket::DeviceSubscribers;
 use rusqlite::{params, Connection, OptionalExtension, Result};
 use std::fs;
 
+const DATA_DIR: &str = "./data";
+
+/// 获取数据库连接
+fn get_connection(path: &str) -> Result<Connection> {
+    Connection::open(path).map_err(|e| {
+        println!("Failed to open database {}: {}", path, e);
+        e
+    })
+}
+
+/// 确保目录存在
+fn ensure_data_dir() -> Result<()> {
+    fs::create_dir_all(DATA_DIR).map_err(|e| rusqlite::Error::ToSqlConversionFailure(Box::new(e)))
+}
+
+/// 存储事件
 pub async fn store_event(
     device_id: &str,
     event: &EventData,
     subscribers: Option<&DeviceSubscribers>,
 ) -> Result<()> {
-    let db_path = format!("./data/{}.db", device_id);
-    fs::create_dir_all("./data")
-        .map_err(|e| rusqlite::Error::InvalidPath(std::path::PathBuf::from(e.to_string())))?;
-    let conn = Connection::open(db_path)?;
+    ensure_data_dir()?;
+    let db_path = format!("{}/{}.db", DATA_DIR, device_id);
+    let conn = get_connection(&db_path)?;
 
     conn.execute(
         "CREATE TABLE IF NOT EXISTS events (
@@ -48,11 +63,11 @@ pub async fn store_event(
     Ok(())
 }
 
+/// 存储设备信息
 pub fn store_device(device_id: &str, device_name: &str) -> Result<()> {
-    let db_path = format!("./data/device.db");
-    fs::create_dir_all("./data")
-        .map_err(|e| rusqlite::Error::InvalidPath(std::path::PathBuf::from(e.to_string())))?;
-    let conn = Connection::open(db_path)?;
+    ensure_data_dir()?;
+    let db_path = format!("{}/device.db", DATA_DIR);
+    let conn = get_connection(&db_path)?;
 
     conn.execute(
         "CREATE TABLE IF NOT EXISTS devices (
@@ -87,9 +102,11 @@ pub fn store_device(device_id: &str, device_name: &str) -> Result<()> {
     Ok(())
 }
 
+/// 获取设备列表
 pub fn get_device_names() -> Result<Vec<(String, String)>> {
-    let db_path = format!("./data/device.db");
-    let conn = Connection::open(db_path)?;
+    ensure_data_dir()?;
+    let db_path = format!("{}/device.db", DATA_DIR);
+    let conn = get_connection(&db_path)?;
 
     let mut stmt = conn.prepare("SELECT device_id, device_name FROM devices")?;
     let device_iter = stmt.query_map([], |row| Ok((row.get(0)?, row.get(1)?)))?;
@@ -102,9 +119,10 @@ pub fn get_device_names() -> Result<Vec<(String, String)>> {
     Ok(devices)
 }
 
+/// 获取设备日志
 pub fn get_device_logs(device_id: &str) -> Result<Vec<(i64, String, String, String)>> {
-    let db_path = format!("./data/{}.db", device_id);
-    let conn = Connection::open(db_path)?;
+    let db_path = format!("{}/{}.db", DATA_DIR, device_id);
+    let conn = get_connection(&db_path)?;
 
     let mut stmt = conn.prepare("SELECT time, event_type, content, timezone FROM events")?;
     let log_iter = stmt.query_map([], |row| {
