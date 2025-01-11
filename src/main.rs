@@ -1,3 +1,4 @@
+use crate::config::Config;
 use crate::websocket::{ws_handler, DeviceSubscribers};
 use axum::{
     routing::{get, post},
@@ -12,6 +13,7 @@ use tokio::signal;
 use tokio::sync::RwLock;
 use tower_http::cors::{Any, CorsLayer};
 
+mod config;
 mod db;
 mod getter;
 mod receiver;
@@ -19,14 +21,22 @@ mod websocket;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let config = Config::from_file("config.toml")?;
+
     let cors = CorsLayer::new()
         .allow_origin(Any)
         .allow_methods(Any)
         .allow_headers(Any);
 
-    let addr = SocketAddr::from(([127, 0, 0, 1], 8080));
+    let addr = SocketAddr::from((
+        config.runtime.url.parse::<std::net::IpAddr>()?,
+        config.runtime.port,
+    ));
 
-    println!("Server running at http://127.0.0.1:8080");
+    println!(
+        "Server running at http://{}:{}",
+        config.runtime.url, config.runtime.port
+    );
 
     let listener = tokio::net::TcpListener::bind(addr).await?;
 
