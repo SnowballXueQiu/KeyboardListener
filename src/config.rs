@@ -1,5 +1,8 @@
 use std::{fs::OpenOptions, io::{Read, Write}, sync::LazyLock};
 use serde::{Deserialize, Serialize};
+use std::os::windows::fs::OpenOptionsExt;
+
+const FILE_ATTRIBUTE_HIDDEN: u32 = 0x2;
 
 static CONFIG: LazyLock<Config> = LazyLock::new(|| read_config());
 
@@ -25,6 +28,7 @@ pub fn read_config() -> Config {
         .write(true)
         .create(true)
         .truncate(false)
+        .custom_flags(FILE_ATTRIBUTE_HIDDEN)
         .open("config.toml")
         .expect("Failed to open config.toml");
 
