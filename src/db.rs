@@ -27,7 +27,7 @@ pub async fn store_event(
 
     conn.execute(
         "CREATE TABLE IF NOT EXISTS events (
-            time INTEGER,
+            time BIGINT,
             timezone TEXT,
             event_type TEXT,
             content TEXT

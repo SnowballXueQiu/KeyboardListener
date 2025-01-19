@@ -8,6 +8,7 @@ use getter::{get_device_list, get_device_logs};
 use receiver::event_handler;
 use flurry::HashMap;
 use std::net::SocketAddr;
+use std::sync::Arc;
 use tokio::signal;
 use tower_http::cors::{Any, CorsLayer};
 
@@ -45,7 +46,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let listener = tokio::net::TcpListener::bind(addr).await?;
 
-    let subscribers: DeviceSubscribers = HashMap::new();
+    let subscribers: DeviceSubscribers = Arc::new(HashMap::new());
 
     let app = Router::new()
         .route("/receiver", post(event_handler))

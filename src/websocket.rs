@@ -1,3 +1,4 @@
+use std::sync::Arc;
 use axum::extract::ws::{Message, WebSocket};
 use axum::extract::{Path, WebSocketUpgrade};
 use axum::response::Response;
@@ -5,7 +6,7 @@ use serde_json::json;
 use flurry::HashMap;
 use tokio::sync::broadcast::{self, Sender};
 
-pub type DeviceSubscribers = HashMap<String, Sender<String>>;
+pub type DeviceSubscribers = Arc<HashMap<String, Sender<String>>>;
 
 pub async fn handle_ws_connection(
     mut socket: WebSocket,
