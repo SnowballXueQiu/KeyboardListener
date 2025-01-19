@@ -14,3 +14,4 @@ tower-http = { version = "0.6.2", features = ["cors"] }
 warp = "0.3"
 futures = "0.3"
 toml = "0.8.19"
+flurry = "0.5.2"

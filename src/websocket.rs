@@ -2,12 +2,10 @@ use axum::extract::ws::{Message, WebSocket};
 use axum::extract::{Path, WebSocketUpgrade};
 use axum::response::Response;
 use serde_json::json;
-use std::collections::HashMap;
-use std::sync::Arc;
+use flurry::HashMap;
 use tokio::sync::broadcast::{self, Sender};
-use tokio::sync::RwLock;
 
-pub type DeviceSubscribers = Arc<RwLock<HashMap<String, Sender<String>>>>;
+pub type DeviceSubscribers = HashMap<String, Sender<String>>;
 
 pub async fn handle_ws_connection(
     mut socket: WebSocket,
@@ -15,10 +13,15 @@ pub async fn handle_ws_connection(
     subscribers: DeviceSubscribers,
 ) {
     let tx = {
-        let mut subscribers = subscribers.write().await;
+        let guard=subscribers.guard();
         subscribers
-            .entry(device_id.clone())
-            .or_insert_with(|| broadcast::channel(100).0)
+            .get(&device_id.clone(),&guard)
+            .or_else(||{
+                let t=broadcast::channel(100).0;
+                subscribers.insert(device_id.clone(),t,&guard);
+                subscribers.get(&device_id.clone(),&guard)
+            })
+            .unwrap()
             .clone()
     };
 
@@ -31,7 +34,7 @@ pub async fn handle_ws_connection(
         }
     }
 
-    subscribers.write().await.remove(&device_id);
+    subscribers.remove(&device_id,&subscribers.guard());
 }
 
 pub async fn broadcast_log(
@@ -42,7 +45,7 @@ pub async fn broadcast_log(
     timezone: &str,
     subscribers: &DeviceSubscribers,
 ) {
-    if let Some(tx) = subscribers.read().await.get(device_id) {
+    if let Some(tx) = subscribers.get(device_id,&subscribers.guard()) {
         let message = json!({
             "time": time,
             "event_type": event_type,

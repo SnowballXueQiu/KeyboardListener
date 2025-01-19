@@ -6,11 +6,9 @@ use axum::{
 };
 use getter::{get_device_list, get_device_logs};
 use receiver::event_handler;
-use std::collections::HashMap;
+use flurry::HashMap;
 use std::net::SocketAddr;
-use std::sync::Arc;
 use tokio::signal;
-use tokio::sync::RwLock;
 use tower_http::cors::{Any, CorsLayer};
 
 mod config;
@@ -21,15 +19,14 @@ mod websocket;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let config = Arc::new(
+    let config =
         Config::init_config_file("config.toml").unwrap_or_else(|err| {
             println!(
                 "Failed to initialize or read config.toml: {}. Using default configuration.",
                 err
             );
             Config::default()
-        }),
-    );
+        });
 
     let cors = CorsLayer::new()
         .allow_origin(Any)
@@ -48,7 +45,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let listener = tokio::net::TcpListener::bind(addr).await?;
 
-    let subscribers: DeviceSubscribers = Arc::new(RwLock::new(HashMap::new()));
+    let subscribers: DeviceSubscribers = HashMap::new();
 
     let app = Router::new()
         .route("/receiver", post(event_handler))
