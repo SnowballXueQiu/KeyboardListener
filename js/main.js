@@ -82,7 +82,7 @@ async function showDeviceInfo(deviceId, deviceName, e) {
   if (events.length === 0) {
     html += '<p>暂无事件记录</p>';
   } else {
-    events.forEach(event => {
+    [...events].reverse().forEach(event => {
       const date = new Date(event.time * 1000);
       const eventTypeCN = eventTypeMap[event.event_type] || event.event_type;
       html += `

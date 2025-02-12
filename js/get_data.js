@@ -19,9 +19,10 @@ export async function getDeviceLogs(deviceId) {
     if (!response.ok) {
       throw new Error('获取设备日志失败');
     }
-    return await response.json();
+    const data = await response.json();
+    return data.sort((a, b) => b.time - b.time);
   } catch (error) {
     console.error('获取设备日志出错:', error);
     return [];
   }
-} 
+}
