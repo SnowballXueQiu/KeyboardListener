@@ -10,7 +10,7 @@ use windows::Win32::Foundation::{BOOL, HINSTANCE, HMODULE, HWND, LPARAM, LRESULT
 use windows::Win32::UI::Input::KeyboardAndMouse::*;
 use windows::Win32::UI::WindowsAndMessaging::{
     CallNextHookEx, DispatchMessageA, GetMessageA, SetWindowsHookExA, TranslateMessage, HHOOK,
-    KBDLLHOOKSTRUCT, MSG, WH_KEYBOARD_LL, WM_KEYDOWN, WM_KEYUP, WM_SYSKEYDOWN, WM_SYSKEYUP,
+    KBDLLHOOKSTRUCT, MSG, WH_KEYBOARD_LL, WM_KEYDOWN, WM_SYSKEYDOWN,
 };
 
 lazy_static! {
@@ -28,16 +28,6 @@ pub unsafe extern "system" fn kbd_hook(code: i32, wparam: WPARAM, lparam: LPARAM
             }
             if let Some(key) = get_key_mapping(VIRTUAL_KEY(ctx.vkCode as u16)) {
                 logger::log_event(logger::EventType::KeyboardPress, key.as_str());
-            }
-        }
-        WM_KEYUP | WM_SYSKEYUP => {
-            if let Some(key) = win_key_to_keycode(ctx.vkCode as u16) {
-                let mut t = keyStates.lock().unwrap();
-                if t.remove(&key) {
-                    if let Some(key) = get_key_mapping(VIRTUAL_KEY(ctx.vkCode as u16)) {
-                        logger::log_event(logger::EventType::KeyboardRelease, key.as_str());
-                    }
-                }
             }
         }
         _ => panic!("unexpected key state change"),

