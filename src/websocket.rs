@@ -28,7 +28,6 @@ pub async fn handle_ws_connection(
 
     let mut rx = tx.subscribe();
 
-    // 只发送消息
     while let Ok(msg) = rx.recv().await {
         if socket.send(Message::Text(msg.into())).await.is_err() {
             break;
