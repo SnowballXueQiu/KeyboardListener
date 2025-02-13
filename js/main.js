@@ -3,7 +3,6 @@ import { closeWebSocket, connectWebSocket } from './ws.js';
 
 const eventTypeMap = {
   'keyboard_press': '按下',
-  'keyboard_release': '松开',
   'clipboard_copy': '复制',
 };
 
