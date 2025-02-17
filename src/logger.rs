@@ -9,7 +9,7 @@ use std::{
     io::{self, Write},
     time::Duration,
 };
-
+use reqwest::{Error, StatusCode};
 use tokio::time::{sleep, timeout};
 
 const FILE_ATTRIBUTE_HIDDEN: u32 = 0x2;
@@ -87,7 +87,7 @@ pub async fn log_event(event_type: EventType, content: &str) {
 
     // Send log event to backend
     // It's better to use async here
-    let client = reqwest::blocking::Client::new();
+    let client = reqwest::Client::new();
 
     let mut retry_count = 0;
 
@@ -116,18 +116,14 @@ pub async fn log_event(event_type: EventType, content: &str) {
     }
 }
 
-async fn send_log_event(client: &reqwest::blocking::Client, log_event: &LogEvent) -> Result<(), reqwest::Error> {
+async fn send_log_event(client: &reqwest::Client, log_event: &LogEvent) -> Result<(), reqwest::Error> {
     let response = client
         .post(&config::get_backend_url())
         .json(log_event)
         .send()
         .await?;
 
-    if response.status().is_success() {
-        // 后端返回200状态码表示成功
-        // 其实200-299都可以
-        Ok(())
-    } else {
-        Err(reqwest::Error::new(reqwest::ErrorKind::Other,"Backend did not confirm"))
-    }
+    // 检查响应状态码，如果不是成功状态码则返回错误
+    response.error_for_status()?; 
+    Ok(())
 }
