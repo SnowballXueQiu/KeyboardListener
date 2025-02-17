@@ -1,0 +1,2 @@
+device_name = "unnamed"
+backend_url = "http://127.0.0.1:8080/receiver"
