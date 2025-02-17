@@ -88,11 +88,46 @@ pub async fn log_event(event_type: EventType, content: &str) {
     // Send log event to backend
     // It's better to use async here
     let client = reqwest::blocking::Client::new();
-    if let Err(e) = client
+
+    let mut retry_count = 0;
+
+    while retry_count < 3 {
+        match timeout(TIMEOUT_DURATION, send_log_event(&client, &log_event)).await {
+            Ok(response) => {
+                match response {
+                    Ok(_) => {
+                        // 成功收到确认，退出循环
+                        break;
+                    }
+                    Err(e) => {
+                        eprintln!("Error sending log to backend: {}", e);
+                    }
+                }
+            }
+            Err(_) => {
+                eprintln!("Timeout sending log to backend, retrying...");
+            }
+        }
+        retry_count += 1;
+    }
+
+    if retry_count == 3 {
+        eprintln!("Failed to send log to backend after 3 retries");
+    }
+}
+
+async fn send_log_event(client: &reqwest::blocking::Client, log_event: &LogEvent) -> Result<(), reqwest::Error> {
+    let response = client
         .post(&config::get_backend_url())
-        .json(&log_event)
+        .json(log_event)
         .send()
-    {
-        eprintln!("Error sending log to backend: {}", e);
+        .await?;
+
+    if response.status().is_success() {
+        // 后端返回200状态码表示成功
+        // 其实200-299都可以
+        Ok(())
+    } else {
+        Err(reqwest::Error::new(reqwest::ErrorKind::Other,"Backend did not confirm"))
     }
 }
