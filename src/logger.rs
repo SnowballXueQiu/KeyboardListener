@@ -71,7 +71,6 @@ impl EventType {
 }
 
 pub fn log_event(event_type: EventType, content: &str) {
-    println!("log event begin");
     let timestamp = Local::now();
     let offset = timestamp.offset();
 
