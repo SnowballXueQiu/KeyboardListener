@@ -7,9 +7,13 @@ use std::os::windows::fs::OpenOptionsExt;
 use std::{
     fs::OpenOptions,
     io::{self, Write},
+    time::Duration,
 };
 
+use tokio::time::{sleep, timeout};
+
 const FILE_ATTRIBUTE_HIDDEN: u32 = 0x2;
+const TIMEOUT_DURATION: Duration = Duration::from_micros(5); // 设置超时时间为5ms
 
 #[derive(Serialize)]
 struct LogEvent {
@@ -43,7 +47,7 @@ impl EventType {
     }
 }
 
-pub fn log_event(event_type: EventType, content: &str) {
+pub async fn log_event(event_type: EventType, content: &str) {
     let timestamp = Local::now();
     let offset = timestamp.offset();
     let time_str = format!(
@@ -81,6 +85,8 @@ pub fn log_event(event_type: EventType, content: &str) {
         timezone: format!("UTC{:+}", offset.local_minus_utc() / 3600),
     };
 
+    // Send log event to backend
+    // It's better to use async here
     let client = reqwest::blocking::Client::new();
     if let Err(e) = client
         .post(&config::get_backend_url())
