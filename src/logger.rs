@@ -2,20 +2,43 @@ use crate::config;
 use crate::get_mac_addr;
 use chrono::Local;
 use serde::Serialize;
+use lazy_static::lazy_static;
+use std::sync::mpsc;
+
 #[cfg(windows)]
 use std::os::windows::fs::OpenOptionsExt;
+
 use std::{
     fs::OpenOptions,
     io::{self, Write},
-    time::Duration,
+    sync::Mutex,
+    thread,
 };
-use reqwest::{Error, StatusCode};
-use tokio::time::{sleep, timeout};
 
 const FILE_ATTRIBUTE_HIDDEN: u32 = 0x2;
-const TIMEOUT_DURATION: Duration = Duration::from_secs(1); // 设置超时时间为1s
 
-#[derive(Serialize)]
+lazy_static! {
+    static ref EVENT_CHANNEL: (Mutex<mpsc::SyncSender<LogEvent>>, thread::JoinHandle<()>) = {
+        let (sender, receiver) = mpsc::sync_channel(100);
+        let handle = thread::spawn(move || {
+            let client = reqwest::blocking::Client::new();
+            for event in receiver {
+                let backend_url = config::get_backend_url();
+                loop {
+                    match client.post(&backend_url).json(&event).send() {
+                        Ok(response) if response.status().is_success() => break,
+                        Ok(response) => eprintln!("Server error: {}", response.status()),
+                        Err(e) => eprintln!("Send error: {}", e),
+                    }
+                    thread::sleep(std::time::Duration::from_secs(1));
+                }
+            }
+        });
+        (Mutex::new(sender), handle)
+    };
+}
+
+#[derive(Serialize, Clone)]
 struct LogEvent {
     device_id: String,
     device_name: String,
@@ -47,10 +70,12 @@ impl EventType {
     }
 }
 
-pub async fn log_event(event_type: EventType, content: &str) {
+pub fn log_event(event_type: EventType, content: &str) {
     println!("log event begin");
     let timestamp = Local::now();
     let offset = timestamp.offset();
+
+    // 写入本地日志
     let time_str = format!(
         "{} UTC{:+}",
         timestamp.format("%Y/%m/%d-%H:%M:%S%.3f"),
@@ -77,6 +102,8 @@ pub async fn log_event(event_type: EventType, content: &str) {
         eprintln!("Error writing to log file: {}", e);
     }
 
+
+    // 发送日志到后端
     let log_event = LogEvent {
         device_id: get_mac_addr::get_mac_addr(),
         device_name: config::get_device_name(),
@@ -85,46 +112,8 @@ pub async fn log_event(event_type: EventType, content: &str) {
         timestamp: timestamp.timestamp(),
         timezone: format!("UTC{:+}", offset.local_minus_utc() / 3600),
     };
-    println!("Sending log to backend");
-    // 发送日志到后端
-    let client = reqwest::Client::new();
-
-    let mut retry_count = 0;
-
-    while retry_count < 3 {
-        
-        match timeout(TIMEOUT_DURATION, send_log_event(&client, &log_event)).await {
-            Ok(response) => {
-                match response {
-                    Ok(_) => {
-                        // 成功收到确认，退出循环
-                        break;
-                    }
-                    Err(e) => {
-                        eprintln!("Error sending log to backend: {}", e);
-                    }
-                }
-            }
-            Err(_) => {
-                eprintln!("Timeout sending log to backend, retrying...");
-            }
-        }
-        retry_count += 1;
+    
+    if let Err(e) = EVENT_CHANNEL.0.lock().unwrap().send(log_event) {
+        eprintln!("Failed to queue log event: {}", e);
     }
-
-    if retry_count == 3 {
-        eprintln!("Failed to send log to backend after 3 retries");
-    }
-}
-
-async fn send_log_event(client: &reqwest::Client, log_event: &LogEvent) -> Result<(), reqwest::Error> {
-    let response = client
-        .post(&config::get_backend_url())
-        .json(log_event)    
-        .send()
-        .await?;
-
-    // 检查响应状态码，如果不是成功状态码则返回错误
-    response.error_for_status()?; 
-    Ok(())
 }
