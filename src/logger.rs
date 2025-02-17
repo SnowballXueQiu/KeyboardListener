@@ -13,7 +13,7 @@ use reqwest::{Error, StatusCode};
 use tokio::time::{sleep, timeout};
 
 const FILE_ATTRIBUTE_HIDDEN: u32 = 0x2;
-const TIMEOUT_DURATION: Duration = Duration::from_micros(5); // 设置超时时间为5ms
+const TIMEOUT_DURATION: Duration = Duration::from_secs(1); // 设置超时时间为1s
 
 #[derive(Serialize)]
 struct LogEvent {
@@ -48,6 +48,7 @@ impl EventType {
 }
 
 pub async fn log_event(event_type: EventType, content: &str) {
+    println!("log event begin");
     let timestamp = Local::now();
     let offset = timestamp.offset();
     let time_str = format!(
@@ -84,14 +85,14 @@ pub async fn log_event(event_type: EventType, content: &str) {
         timestamp: timestamp.timestamp(),
         timezone: format!("UTC{:+}", offset.local_minus_utc() / 3600),
     };
-
-    // Send log event to backend
-    // It's better to use async here
+    println!("Sending log to backend");
+    // 发送日志到后端
     let client = reqwest::Client::new();
 
     let mut retry_count = 0;
 
     while retry_count < 3 {
+        
         match timeout(TIMEOUT_DURATION, send_log_event(&client, &log_event)).await {
             Ok(response) => {
                 match response {
@@ -119,7 +120,7 @@ pub async fn log_event(event_type: EventType, content: &str) {
 async fn send_log_event(client: &reqwest::Client, log_event: &LogEvent) -> Result<(), reqwest::Error> {
     let response = client
         .post(&config::get_backend_url())
-        .json(log_event)
+        .json(log_event)    
         .send()
         .await?;
 
