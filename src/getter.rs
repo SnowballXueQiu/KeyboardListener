@@ -46,6 +46,7 @@ pub async fn get_device_logs(Path(device_id): Path<String>) -> Json<Vec<DeviceLo
     match db::get_device_logs(&device_id, log_limit) {
         Ok(logs) => Json(
             logs.into_iter()
+                .rev()
                 .map(|(time, event_type, content, timezone)| DeviceLog {
                     time,
                     event_type,
