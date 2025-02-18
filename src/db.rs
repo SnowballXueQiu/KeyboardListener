@@ -124,7 +124,7 @@ pub fn get_device_logs(
     let conn = get_connection(&db_path)?;
 
     let query = format!(
-        "SELECT time, event_type, content, timezone FROM events ORDER BY time DESC LIMIT {}",
+        "SELECT time, event_type, content, timezone FROM events LIMIT {}",
         log_limit
     );
 
